@@ -149,7 +149,7 @@ export class BasketService {
             relations: ['product']
         });
 
-        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+        const totalItems = items.length;
         const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         await this.basketRepo.update(basketId, {

@@ -45,7 +45,7 @@ export class BasketItemEntity extends BaseEntity {
     @JoinColumn({ name: 'basketId' })
     basket: BasketEntity;
 
-    @ManyToOne(() => ProductEntity, (product) => product.basketItems)
+    @ManyToOne(() => ProductEntity, (product) => product.basketItems, {onDelete: 'CASCADE'})
     @JoinColumn({ name: 'productId' })
     product: ProductEntity;
 }
