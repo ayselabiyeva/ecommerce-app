@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { BasketService } from './basket.service';
 import { Auth } from 'src/shared/decorators/auth.decorator';
 import BasketDto from './dto/add.dto';
@@ -36,10 +36,10 @@ export class BasketController {
         return basket
     }
 
-    @Delete()
+    @Delete(':id')
     @Auth()
     @ApiOperation({ summary: "Delete item from basket by productId" })
-    async deleteItem(@Body() params: RemoveBasketDto) {
-        return await this.basketService.removeFromBasket(params.id)
+    async deleteItem(@Param('id') id: number) {
+        return await this.basketService.removeFromBasket(id)
     }
 }

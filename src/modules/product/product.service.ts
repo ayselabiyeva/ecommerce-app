@@ -193,41 +193,71 @@ export class ProductService {
 
 
     async getProductByCategoryId(id: number) {
-        let category = await this.categoryRepo.findOne({ where: { id }, select: { id: true } })
+    const category = await this.categoryRepo.findOne({ 
+        where: { id }, 
+        select: { id: true } 
+    });
 
-        if (!category) throw new NotFoundException("Category is not found with given id!")
+    if (!category) {
+        throw new NotFoundException("Category is not found with given id!");
+    }
 
-        let product = await this.productRepo.findOne({
-            where: { categoryId: category.id }, select: {
-                name: true,
-                description: true,
-                price: true,
-                stock: true,
-                category: {
-                    name: true,
-                    id: true,
-                    slug: true
-                },
-                brand: {
-                    id: true,
-                    name: true,
-                    slug: true
-                },
-                images: true,
+    const categoryIds = await this.getAllSubCategoryIds(id);
+
+    const products = await this.productRepo.find({
+        where: { 
+            categoryId: In(categoryIds) 
+        },
+        select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            stock: true,
+            colors: true,
+            sizes: true,
+            slug: true,
+            createdAt: true,
+            updatedAt: true,
+            images: true,
+            category: {
                 id: true,
-                colors: true,
-                sizes: true,
-                slug: true,
-                createdAt: true,
-                updatedAt: true
+                name: true,
+                slug: true
+            },
+            brand: {
+                id: true,
+                name: true,
+                slug: true
             }
-            , relations: ['category', 'images']
-        })
+        },
+        relations: ['category', 'brand', 'images']
+    });
 
-        if (!product) throw new NotFoundException("Product is not found with given category id!")
+    if (!products || products.length === 0) {
+        throw new NotFoundException("No products found for the given category and its subcategories!");
+    }
 
-        return product
+    return products;
+}
 
+    private async getAllSubCategoryIds(parentId: number): Promise<number[]> {
+    const categoryIds = [parentId]; 
+
+    const findSubCategories = async (currentParentId: number): Promise<void> => {
+        const subCategories = await this.categoryRepo.find({
+            where: { parentId: currentParentId },
+            select: { id: true }
+        });
+        
+        for (const subCategory of subCategories) {
+            categoryIds.push(subCategory.id);
+            await findSubCategories(subCategory.id);
+        }
+    };
+
+    await findSubCategories(parentId);
+    return categoryIds;
     }
 
 
